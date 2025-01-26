@@ -30,7 +30,10 @@ public static class CM_PageMap__UpdatePlayerData__Patch
         
         _jank?.Dispose();
         _jank = null;
-    
+
+        if (__instance.m_mapHolder == null)
+            return;
+        
         var localPlayer = PlayerManager.GetLocalPlayerAgent();
 
         __instance.m_mapHolder.SetActive(true);
