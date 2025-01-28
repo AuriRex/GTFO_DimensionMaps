@@ -25,7 +25,14 @@ public class PlayerAgentDimensionOverrideJank : IDisposable
             // Prevent players that are in the same dimension as the local player from
             // getting hidden by the game while in dimensions that aren't 'reality'
             if (player.m_dimensionIndex == localPlayerDim)
+            {
                 player.m_dimensionIndex = eDimensionIndex.Reality;
+            }
+            else
+            {
+                // Make sure players in the real 'reality' dimension do not show up
+                player.m_dimensionIndex = localPlayerDim + 1;
+            }
         }
     }
 
