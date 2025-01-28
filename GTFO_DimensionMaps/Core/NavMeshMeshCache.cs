@@ -13,8 +13,9 @@ public static class NavMeshMeshCache
     public static HashSet<NavMeshInfo> All { get; } = new();
 
     internal static CMapDetails Details;
-    
-    public static void Clear()
+    public static bool IsSetup { get; private set; }
+
+    private static void Clear()
     {
         foreach (var info in All)
         {
@@ -34,7 +35,7 @@ public static class NavMeshMeshCache
         //DebugRenderAll();
 
         Details ??= new CMapDetails();
-        Details.SetupAllMapLayers();
+        Details.SetupAllMapLayers(All);
     }
 
     private static Dictionary<eDimensionIndex, Color> _debugColors = new()
@@ -64,19 +65,21 @@ public static class NavMeshMeshCache
 
     private static void InjectAllNavMeshes()
     {
-        Plugin.L.LogWarning("Injecting all nav meshes");
+        Plugin.L.LogWarning("Re-Injecting all nav meshes");
         NavMesh.RemoveAllNavMeshData();
         
         foreach (var info in All)
         {
-            if (info.job == null)
-                continue;
+            var dim = info.dimension;
             
-            var dim = info.job.m_dimension;
+            if (dim == null)
+                continue;
+
             Plugin.L.LogWarning($"Injecting NavMesh for {dim.DimensionIndex}");
             AddNavMeshData(dim);
-            info.job = null;
         }
+        
+        IsSetup = true;
     }
 
     public static void Process(LG_BuildUnityGraphJob job)
@@ -85,25 +88,22 @@ public static class NavMeshMeshCache
 
         NavMesh.RemoveAllNavMeshData();
 
-        AddNavMeshData(job.m_dimension);
+        var dimension = job.m_dimension;
+        
+        AddNavMeshData(dimension);
 
-        var dimensionIndex = job.m_dimension.DimensionIndex;
+        var dimensionIndex = dimension.DimensionIndex;
         
         var mesh = CalculateCurrentNavMeshMesh(dimensionIndex.ToString());
 
-        var navInfo = new NavMeshInfo
-        {
-            mesh = mesh,
-            dimensionIndex = dimensionIndex,
-            job = job,
-        };
+        var navInfo = new NavMeshInfo(dimensionIndex, mesh, dimension);
 
         All.Add(navInfo);
     }
     
     private static Mesh CalculateCurrentNavMeshMesh(string identifier)
     {
-        NavMeshTriangulation navMeshTriangulation = NavMesh.CalculateTriangulation();
+        var navMeshTriangulation = NavMesh.CalculateTriangulation();
         var mesh = new Mesh
         {
             name = $"NavMeshMesh_{identifier}",
@@ -111,8 +111,8 @@ public static class NavMeshMeshCache
             vertices = navMeshTriangulation.vertices,
             triangles = navMeshTriangulation.indices
         };
-        Vector3[] array = new Vector3[mesh.vertices.Length];
-        Vector3 up = Vector3.up;
+        var array = new Vector3[mesh.vertices.Length];
+        var up = Vector3.up;
         for (int i = 0; i < array.Length; i++)
         {
             array[i] = up;
@@ -127,6 +127,7 @@ public static class NavMeshMeshCache
         Details?.OnLevelCleanup();
         CMapDataManager.Cleanup();
         Clear();
+        IsSetup = false;
     }
 
     public static void SaveSnapshot()

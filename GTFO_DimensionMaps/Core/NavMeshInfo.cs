@@ -1,10 +1,18 @@
+using LevelGeneration;
 using UnityEngine;
 
 namespace DimensionMaps.Core;
 
 public class NavMeshInfo
 {
-    public eDimensionIndex dimensionIndex;
-    public Mesh mesh;
-    public LG_BuildUnityGraphJob job;
+    public readonly eDimensionIndex dimensionIndex;
+    public readonly Mesh mesh;
+    public readonly Dimension dimension;
+
+    public NavMeshInfo(eDimensionIndex dimensionIndex, Mesh mesh, Dimension dimension)
+    {
+        this.dimensionIndex = dimensionIndex;
+        this.mesh = mesh;
+        this.dimension = dimension;
+    }
 }

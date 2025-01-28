@@ -36,6 +36,9 @@ public static class CM_PageMap__UpdatePlayerData__Patch
         
         var localPlayer = PlayerManager.GetLocalPlayerAgent();
 
+        if (localPlayer == null)
+            return;
+        
         __instance.m_mapHolder.SetActive(true);
         CMapDataManager.ShowDimension(localPlayer.DimensionIndex);
 

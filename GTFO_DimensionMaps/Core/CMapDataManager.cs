@@ -1,55 +1,45 @@
 using System.Collections.Generic;
+using System.Linq;
 using CellMenu;
 using UnityEngine;
 
 namespace DimensionMaps.Core;
 
-public class CMapDataManager
+public static class CMapDataManager
 {
-    private static readonly Dictionary<eDimensionIndex, List<CM_MapZoneData>> _dimensionMapZoneDatas = new();
-    private static readonly Dictionary<eDimensionIndex, List<CM_MapZoneGUIItem>> _dimensionMapZoneGUIs = new();
-    private static readonly Dictionary<eDimensionIndex, (GameObject UI, GameObject ItemRoot)> _dimensionMapGameObjects = new();
-    
+    private static readonly Dictionary<eDimensionIndex, MapInfo> _dimensionMapInfo = new();
+
     public static void Cleanup()
     {
-        foreach (var kvp in _dimensionMapZoneDatas)
+        foreach (var kvp in _dimensionMapInfo)
         {
-            kvp.Value.Clear();
-        }
-
-        _dimensionMapZoneDatas.Clear();
-
-        foreach (var kvp in _dimensionMapZoneGUIs)
-        {
-            kvp.Value.Clear();
+            kvp.Value.Cleanup();
         }
         
-        _dimensionMapZoneGUIs.Clear();
-        
-        _dimensionMapGameObjects.Clear();
+        _dimensionMapInfo.Clear();
     }
     
     public static void AddZoneData(eDimensionIndex dimensionIndex, CM_MapZoneData mapZoneData)
     {
-        if (!_dimensionMapZoneDatas.TryGetValue(dimensionIndex, out var zoneDatas))
+        if (!_dimensionMapInfo.TryGetValue(dimensionIndex, out var info))
         {
-            zoneDatas = new List<CM_MapZoneData>();
-            _dimensionMapZoneDatas.Add(dimensionIndex, zoneDatas);
+            info = new();
+            _dimensionMapInfo.Add(dimensionIndex, info);
         }
         
-        zoneDatas.Add(mapZoneData);
+        info.zoneDatas.Add(mapZoneData);
     }
 
     public static void GenerateMap(eDimensionIndex dimensionIndex)
     {
-        if (!_dimensionMapZoneDatas.TryGetValue(dimensionIndex, out var zoneDatas))
+        if (!_dimensionMapInfo.TryGetValue(dimensionIndex, out var info))
         {
             return;
         }
         
-        Plugin.L.LogWarning($"Generating map icons for {zoneDatas.Count} zones in dim {dimensionIndex} ...");
+        Plugin.L.LogWarning($"Generating map icons for {info.zoneDatas.Count} zones in dim {dimensionIndex} ...");
         
-        BuildMap(dimensionIndex, zoneDatas.ToArray());
+        BuildMap(dimensionIndex, info.zoneDatas.ToArray());
     }
 
     private static GameObject GetDimensionMapRoot(eDimensionIndex dimensionIndex)
@@ -71,15 +61,16 @@ public class CMapDataManager
         return go;
     }
 
-    private static void GetZoneGUIList(eDimensionIndex dimensionIndex, out List<CM_MapZoneGUIItem> zoneGUIs)
+    private static bool GetZoneGUIList(eDimensionIndex dimensionIndex, out List<CM_MapZoneGUIItem> zoneGUIs)
     {
-        if (_dimensionMapZoneGUIs.TryGetValue(dimensionIndex, out zoneGUIs))
+        if (_dimensionMapInfo.TryGetValue(dimensionIndex, out var info))
         {
-            return;
+            zoneGUIs = info.zoneGUIs;
+            return true;
         }
-
-        zoneGUIs = new List<CM_MapZoneGUIItem>();
-        _dimensionMapZoneGUIs[dimensionIndex] = zoneGUIs;
+        
+        zoneGUIs = null;
+        return false;
     }
     
     private static void BuildMap(eDimensionIndex dimensionIndex, CM_MapZoneData[] zones)
@@ -90,7 +81,11 @@ public class CMapDataManager
         
         //pageMap.m_zoneGUI = new CM_MapZoneGUIItem[zones.Length];
 
-        GetZoneGUIList(dimensionIndex, out var zoneGUIs);
+        if (!GetZoneGUIList(dimensionIndex, out var zoneGUIs))
+        {
+            Plugin.L.LogError("Could not get `zoneGUIs`, this should not happen.");
+            return;
+        }
         
         foreach (var data in zones)
         {
@@ -102,9 +97,20 @@ public class CMapDataManager
             //pageMap.m_zoneGUI[i] = zoneGUI;
         }
 
-        //pageMap.m_mapMover.transform.localPosition = Vector3.zero;
+        if (pageMap.m_zoneGUI == null)
+        {
+            pageMap.m_zoneGUI = new CM_MapZoneGUIItem[0];
+        }
 
+        // Add the zoneGUIs to the base game map icon list so CConsole etc can reveal them
+        var list = pageMap.m_zoneGUI.ToList();
+        foreach (var gui in zoneGUIs)
+        {
+            list.Add(gui);
+        }
+        pageMap.m_zoneGUI = list.ToArray();
         
+
         var ui = CMapDetails.GetUI(dimensionIndex, out var mapBounds);
 
         if (ui == null)
@@ -113,13 +119,11 @@ public class CMapDataManager
             return;
         }
         
-        //ui.name = $"{ui.name}_{dimensionIndex}";
-        
         ui.transform.SetParent(pageMap.m_mapMover.transform);
         ui.transform.localScale = Vector3.one;
         
-        Vector3 localGUIPos = CM_PageMap.GetLocalGUIPos(CM_PageMap.WorldRef, mapBounds.min);
-        Vector3 localGUIPos2 = CM_PageMap.GetLocalGUIPos(CM_PageMap.WorldRef, mapBounds.max);
+        var localGUIPos = CM_PageMap.GetLocalGUIPos(CM_PageMap.WorldRef, mapBounds.min);
+        var localGUIPos2 = CM_PageMap.GetLocalGUIPos(CM_PageMap.WorldRef, mapBounds.max);
         
         var bounds = default(Bounds);
         
@@ -143,7 +147,10 @@ public class CMapDataManager
             mapDimensionRoot.SetActive(true);
         }
 
-        _dimensionMapGameObjects[dimensionIndex] = (ui, mapDimensionRoot);
+        if (_dimensionMapInfo.TryGetValue(dimensionIndex, out var info))
+        {
+            info.SetGameObjects(ui, mapDimensionRoot);
+        }
         
         pageMap.m_cursor.transform.SetAsLastSibling();
         pageMap.m_mapHolder.transform.localScale = new Vector3(pageMap.m_scaleCurrent, pageMap.m_scaleCurrent, 1f);
@@ -152,21 +159,19 @@ public class CMapDataManager
 
     public static void ShowDimension(eDimensionIndex dimensionIndex)
     {
-        if (!_dimensionMapGameObjects.TryGetValue(dimensionIndex, out var targetGos))
+        if (!_dimensionMapInfo.TryGetValue(dimensionIndex, out var mapInfoToShow))
             return;
         
-        foreach (var kvp in _dimensionMapGameObjects)
+        foreach (var kvp in _dimensionMapInfo)
         {
-            var tpl = kvp.Value;
+            var mapInfo = kvp.Value;
 
-            tpl.UI?.SetActive(false);
-            tpl.ItemRoot?.SetActive(false);
+            mapInfo.SetActive(false);
         }
 
-        targetGos.UI?.SetActive(true);
-        targetGos.ItemRoot?.SetActive(true);
+        mapInfoToShow.SetActive(true);
 
-        if (!NavMeshMeshCache.Details._mapLayers.TryGetValue(dimensionIndex, out var data))
+        if (!NavMeshMeshCache.Details.GetMapLayer(dimensionIndex, out var data))
         {
             return;
         }
