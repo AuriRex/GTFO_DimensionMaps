@@ -10,7 +10,7 @@ public class PlayerAgentDimensionOverrideJank : IDisposable
     // Sometimes we have to do cursed things to combat the cursedness that is IL2CPP :)
     private Dictionary<IntPtr, eDimensionIndex> _jank = new();
     
-    public PlayerAgentDimensionOverrideJank()
+    public PlayerAgentDimensionOverrideJank(bool doDisconnect = false)
     {
         var localPlayer = PlayerManager.GetLocalPlayerAgent();
         var localPlayerDim = localPlayer?.m_dimensionIndex ?? eDimensionIndex.Reality;
@@ -21,6 +21,12 @@ public class PlayerAgentDimensionOverrideJank : IDisposable
                 continue;
             
             _jank.Add(player.Pointer, player.m_dimensionIndex);
+
+            if (doDisconnect)
+            {
+                player.m_dimensionIndex = eDimensionIndex.Dimension_20;
+                return;
+            }
             
             // Prevent players that are in the same dimension as the local player from
             // getting hidden by the game while in dimensions that aren't 'reality'
