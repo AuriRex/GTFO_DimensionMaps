@@ -15,7 +15,7 @@ public static class LG_Factory__NextBatch__Patch
         if (!__result)
             return;
 
-        Plugin.L.LogWarning($"Next Batch called: {_lastBatch} --> {__instance.m_currentBatchName}");
+        //Plugin.L.LogWarning($"Next Batch called: {_lastBatch} --> {__instance.m_currentBatchName}");
 
         if (_lastBatch == LG_Factory.BatchName.AIGraph_UnityAIGraph)
         {

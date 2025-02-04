@@ -106,7 +106,7 @@ public static class BetterMapsCompat
         if (!OverrideCalculateTriangulation)
             return true;
         
-        __result = OverrideTriangulationResult; // TODO
+        __result = OverrideTriangulationResult;
         OverrideCalculateTriangulation = false;
         return false;
     }

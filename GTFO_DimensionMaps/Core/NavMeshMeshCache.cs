@@ -67,31 +67,6 @@ public static class NavMeshMeshCache
         Details.SetupAllMapLayers(mapLayers);
     }
 
-    /*private static Dictionary<eDimensionIndex, Color> _debugColors = new()
-    {
-        {eDimensionIndex.Reality, Color.white},
-        {eDimensionIndex.Dimension_1, Color.green},
-        {eDimensionIndex.Dimension_2, Color.yellow},
-        {eDimensionIndex.Dimension_3, Color.red},
-        {eDimensionIndex.Dimension_4, Color.magenta},
-        {eDimensionIndex.Dimension_5, Color.blue},
-    };
-    
-    private static void DebugRenderAll()
-    {
-        foreach (var info in All)
-        {
-            var go = new GameObject($"NavDebug_{info.dimensionIndex}");
-            var f = go.AddComponent<MeshFilter>();
-            f.mesh = info.mesh;
-            var r = go.AddComponent<MeshRenderer>();
-            r.material = new Material(Shader.Find("Standard"));
-            if (!_debugColors.TryGetValue(info.dimensionIndex, out var color))
-                color = Color.cyan;
-            r.material.color = color;
-        }
-    }*/
-
     private static void InjectAllNavMeshes()
     {
         Plugin.L.LogWarning("Re-Injecting all nav meshes");

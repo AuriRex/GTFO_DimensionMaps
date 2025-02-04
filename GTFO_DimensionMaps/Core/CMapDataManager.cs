@@ -79,8 +79,6 @@ public static class CMapDataManager
 
         var mapDimensionRoot = GetDimensionMapRoot(dimensionIndex);
         
-        //pageMap.m_zoneGUI = new CM_MapZoneGUIItem[zones.Length];
-
         if (!GetZoneGUIList(dimensionIndex, out var zoneGUIs))
         {
             Plugin.L.LogError("Could not get `zoneGUIs`, this should not happen.");
@@ -94,7 +92,6 @@ public static class CMapDataManager
             zoneGUI.Setup(data, pageMap.m_root);
 
             zoneGUIs.Add(zoneGUI);
-            //pageMap.m_zoneGUI[i] = zoneGUI;
         }
 
         if (pageMap.m_zoneGUI == null)

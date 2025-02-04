@@ -6,7 +6,6 @@ namespace DimensionMaps.Core;
 
 public partial class CMapDetails
 {
-    
     private readonly Dictionary<eDimensionIndex, MapData> _mapLayers = new();
     
     public static bool RevealMapTexture { get; set; } = false;
