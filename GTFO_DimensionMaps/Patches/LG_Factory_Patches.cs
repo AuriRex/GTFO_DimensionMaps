@@ -23,6 +23,11 @@ public static class LG_Factory__NextBatch__Patch
             // else the game FUCKING EXPLODES
             NavMeshMeshCache.NavMeshBuildDone();
         }
+
+        if (_lastBatch == LG_Factory.BatchName.AIGraph_AirGraph_PostProcess)
+        {
+            NavMeshMeshCache.DeferredMapConstruction();
+        }
             
         _lastBatch = __instance.m_currentBatchName;
     }

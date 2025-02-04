@@ -11,8 +11,11 @@ using HarmonyLib;
 namespace DimensionMaps;
 
 [BepInPlugin(GUID, NAME, VERSION)]
+[BepInDependency(BETTER_MAPS_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugin : BasePlugin
 {
+    public const string BETTER_MAPS_GUID = "BetterMaps";
+    
     public const string GUID = "dev.aurirex.gtfo.dimensionmaps";
     public const string NAME = "Dimension Maps";
     public const string VERSION = "0.0.1";
@@ -27,5 +30,7 @@ public class Plugin : BasePlugin
 
         _harmonyInstance = new Harmony(GUID);
         _harmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
+
+        CompatibilityManager.Init();
     }
 }

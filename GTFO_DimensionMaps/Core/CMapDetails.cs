@@ -19,6 +19,10 @@ public class CMapDetails
     public static int MapResolution => MapDetails.Current.m_mapResolution;
     public static int MapRenderResolution => MapDetails.Current.m_mapRenderResolution;
 
+    
+    internal static float? MapOutlineFactor = null!;
+    internal static float? MapBlurFactor = null!;
+    
     public IEnumerable<KeyValuePair<eDimensionIndex, MapData>> AllMapLayers
     {
         get
@@ -228,10 +232,10 @@ System.IO.File.WriteAllBytes("Q:/file_real.png", bytes);
         var samplingScale = 0.005f * downscale;
 		var nameID = Shader.PropertyToID("_SamplingScale");
         
-		Mat_FindMapOutline.SetFloat(nameID, samplingScale);
-		Mat_SDF.SetFloat(nameID, samplingScale);
-		Mat_BlurX.SetFloat(nameID, samplingScale);
-        Mat_BlurY.SetFloat(nameID, samplingScale);
+		Mat_FindMapOutline.SetFloat(nameID, MapOutlineFactor ?? samplingScale);
+		Mat_SDF.SetFloat(nameID, MapOutlineFactor ?? samplingScale);
+		Mat_BlurX.SetFloat(nameID, MapBlurFactor ?? samplingScale);
+        Mat_BlurY.SetFloat(nameID, MapBlurFactor ?? samplingScale);
         
 		var tempOne = new RenderTexture(width, height, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
 		var tempTwo = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);

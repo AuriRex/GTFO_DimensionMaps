@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using DimensionMaps.Core;
+using DimensionMaps.Core.NavMeshProcessor;
 using DimensionMaps.Extensions;
 using LevelGeneration;
 using UnityEngine;
@@ -15,6 +18,9 @@ public static class NavMeshMeshCache
     internal static CMapDetails Details;
     public static bool IsSetup { get; private set; }
 
+    public static INavMeshProcessor DefaultProcessor { get; } = new DefaultNavMeshProcessor();
+    public static INavMeshProcessor Processor { get; set; } = DefaultProcessor;
+    
     private static void Clear()
     {
         foreach (var info in All)
@@ -24,21 +30,44 @@ public static class NavMeshMeshCache
         All.Clear();
     }
 
-    public static void AddNavMeshData(Dimension dimension)
+    private static void AddNavMeshData(Dimension dimension)
     {
         dimension.NavmeshInstance = NavMesh.AddNavMeshData(dimension.NavmeshData);
     }
     
-    public static void NavMeshBuildDone()
+    internal static void NavMeshBuildDone()
     {
         InjectAllNavMeshes();
         //DebugRenderAll();
 
-        Details ??= new CMapDetails();
-        Details.SetupAllMapLayers(All);
+        if (Processor.IsDeferred)
+            return;
+        
+        SetupMapLayers(All);
     }
 
-    private static Dictionary<eDimensionIndex, Color> _debugColors = new()
+    public static void InjectDeferredMesh(eDimensionIndex key, Mesh mesh)
+    {
+        var navInfo = All.FirstOrDefault(i => i.dimensionIndex == key);
+
+        if (navInfo == null)
+            return;
+        
+        navInfo.mesh = mesh;
+    }
+
+    public static void SetupAllMapLayers()
+    {
+        SetupMapLayers(All);
+    }
+    
+    private static void SetupMapLayers(IEnumerable<NavMeshInfo> mapLayers)
+    {
+        Details ??= new CMapDetails();
+        Details.SetupAllMapLayers(mapLayers);
+    }
+
+    /*private static Dictionary<eDimensionIndex, Color> _debugColors = new()
     {
         {eDimensionIndex.Reality, Color.white},
         {eDimensionIndex.Dimension_1, Color.green},
@@ -61,7 +90,7 @@ public static class NavMeshMeshCache
                 color = Color.cyan;
             r.material.color = color;
         }
-    }
+    }*/
 
     private static void InjectAllNavMeshes()
     {
@@ -81,7 +110,7 @@ public static class NavMeshMeshCache
         
         IsSetup = true;
     }
-
+    
     public static void Process(LG_BuildUnityGraphJob job)
     {
         Plugin.L.LogWarning($"Processing {job.GetName()} ({job.m_dimension.DimensionIndex})");
@@ -93,35 +122,36 @@ public static class NavMeshMeshCache
         AddNavMeshData(dimension);
 
         var dimensionIndex = dimension.DimensionIndex;
+
+        Mesh mesh = null;
         
-        var mesh = CalculateCurrentNavMeshMesh(dimensionIndex.ToString());
+        if (Processor.IsDeferred)
+        {
+            if (Processor.DeferredData == null)
+            {
+                Plugin.L.LogWarning($"Current {nameof(INavMeshProcessor)} ('{Processor.GetType().FullName}') says it's deferred, but no {nameof(INavMeshProcessor.DeferredData)} queue exists. (= Not good)");
+            }
+            
+            Processor.DeferredData?.Enqueue(new DeferredNavMeshData(dimensionIndex, NavMesh.CalculateTriangulation()));
+        }
+        else
+        {
+            mesh = Processor.CalculateNavMeshMesh(dimensionIndex);
+        }
 
         var navInfo = new NavMeshInfo(dimensionIndex, mesh, dimension);
 
         All.Add(navInfo);
     }
     
-    private static Mesh CalculateCurrentNavMeshMesh(string identifier)
+    public static void DeferredMapConstruction()
     {
-        var navMeshTriangulation = NavMesh.CalculateTriangulation();
-        var mesh = new Mesh
-        {
-            name = $"NavMeshMesh_{identifier}",
-            indexFormat = ((Mathf.Max(navMeshTriangulation.vertices.Length, navMeshTriangulation.indices.Length) >= 65534) ? IndexFormat.UInt32 : IndexFormat.UInt16),
-            vertices = navMeshTriangulation.vertices,
-            triangles = navMeshTriangulation.indices
-        };
-        var array = new Vector3[mesh.vertices.Length];
-        var up = Vector3.up;
-        for (int i = 0; i < array.Length; i++)
-        {
-            array[i] = up;
-        }
-        mesh.normals = array;
-
-        return mesh;
+        if (!Processor.IsDeferred)
+            return;
+        
+        Processor.DeferredMapConstruction();
     }
-
+    
     public static void OnLevelCleanup()
     {
         Details?.OnLevelCleanup();
