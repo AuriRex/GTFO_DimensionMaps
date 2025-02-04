@@ -125,18 +125,20 @@ public static class NavMeshMeshCache
 
         Mesh mesh = null;
         
-        if (Processor.IsDeferred)
+        var processor = GetProcessor(dimensionIndex);
+        
+        if (processor.IsDeferred)
         {
-            if (Processor.DeferredData == null)
+            if (processor.DeferredData == null)
             {
-                Plugin.L.LogWarning($"Current {nameof(INavMeshProcessor)} ('{Processor.GetType().FullName}') says it's deferred, but no {nameof(INavMeshProcessor.DeferredData)} queue exists. (= Not good)");
+                Plugin.L.LogWarning($"Current {nameof(INavMeshProcessor)} ('{processor.GetType().FullName}') says it's deferred, but no {nameof(INavMeshProcessor.DeferredData)} queue exists. (= Not good)");
             }
             
-            Processor.DeferredData?.Enqueue(new DeferredNavMeshData(dimensionIndex, NavMesh.CalculateTriangulation()));
+            processor.DeferredData?.Enqueue(new DeferredNavMeshData(dimensionIndex, NavMesh.CalculateTriangulation()));
         }
         else
         {
-            mesh = Processor.CalculateNavMeshMesh(dimensionIndex);
+            mesh = processor.CalculateNavMeshMesh(dimensionIndex);
         }
 
         var navInfo = new NavMeshInfo(dimensionIndex, mesh, dimension);
@@ -168,5 +170,16 @@ public static class NavMeshMeshCache
     public static void LoadSnapshot()
     {
         Details?.RestoreSnapshot();
+    }
+
+    public static INavMeshProcessor GetProcessor(eDimensionIndex dimensionIndex)
+    {
+        if (ConfigManager.TryGetCurrentConfig(out var config) && config.DimensionsToForceDefaultMapRendering != null)
+        {
+            if (config.DimensionsToForceDefaultMapRendering.Contains((uint) dimensionIndex))
+                return DefaultProcessor;
+        }
+        
+        return Processor;
     }
 }

@@ -14,6 +14,9 @@ By creating files with the file name formated like `DimensionMaps_RundownID_Tier
     "DimensionsToDisconnect": [
         0,
         2
+    ],
+    "DimensionsToForceDefaultMapRendering": [
+        1
     ]
 }
 ```
@@ -25,6 +28,10 @@ By creating files with the file name formated like `DimensionMaps_RundownID_Tier
 * `DimensionsToDisconnect` (List&lt;uint&gt;)
   * Any dimension index entries in this list will have their maps 'disconnected' in game.
   * In the example above, dimension 0 (Reality, aka the main dimension) and dimension 2 will have their maps inaccessible.
+* `DimensionsToForceDefaultMapRendering` (List&lt;uint&gt;)
+  * ***Only used if BetterMaps is installed!***
+  * Prevents the dimensions in that list from using the improved BetterMaps code and instead falls back to the vanilla one.  
+    (Might be useful for desert dimensions, where BetterMaps struggles a bit - ymmv)
 
 #### Examples
 

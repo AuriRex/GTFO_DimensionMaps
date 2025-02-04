@@ -9,6 +9,8 @@ public class DeferredNavMeshProcessor : INavMeshProcessor
     public Action onDeferredMapConstruction = null!;
     
     public bool IsDeferred => true;
+    public float? MapBlurFactor { get; set; }
+    public float? MapOutlineFactor { get; set; }
     public Queue<DeferredNavMeshData> DeferredData { get; } = new();
 
     public Mesh CalculateNavMeshMesh(eDimensionIndex dimensionIndex)

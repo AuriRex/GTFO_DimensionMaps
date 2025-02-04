@@ -19,9 +19,10 @@ public class CMapDetails
     public static int MapResolution => MapDetails.Current.m_mapResolution;
     public static int MapRenderResolution => MapDetails.Current.m_mapRenderResolution;
 
-    
-    internal static float? MapOutlineFactor = null!;
-    internal static float? MapBlurFactor = null!;
+
+    private static eDimensionIndex _currentDimension;
+    internal static float? MapOutlineFactor => NavMeshMeshCache.GetProcessor(_currentDimension).MapOutlineFactor;
+    internal static float? MapBlurFactor => NavMeshMeshCache.GetProcessor(_currentDimension).MapBlurFactor;
     
     public IEnumerable<KeyValuePair<eDimensionIndex, MapData>> AllMapLayers
     {
@@ -152,6 +153,8 @@ public class CMapDetails
     
     private void SetupMapLayer(eDimensionIndex index, Mesh mesh)
     {
+        _currentDimension = index;
+        
         var gameObject = new GameObject($"MapNavmesh_{index}");
         var meshFilter = gameObject.AddComponent<MeshFilter>();
         var meshRenderer = gameObject.AddComponent<MeshRenderer>();

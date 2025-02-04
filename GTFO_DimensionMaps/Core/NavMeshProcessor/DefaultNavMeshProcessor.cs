@@ -6,6 +6,9 @@ namespace DimensionMaps.Core.NavMeshProcessor;
 
 public class DefaultNavMeshProcessor : INavMeshProcessor
 {
+    public float? MapBlurFactor { get; set; }
+    public float? MapOutlineFactor { get; set; }
+    
     public Mesh CalculateNavMeshMesh(eDimensionIndex dimensionIndex)
     {
         var navMeshTriangulation = NavMesh.CalculateTriangulation();

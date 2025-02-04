@@ -49,9 +49,9 @@ public static class BetterMapsCompat
         var blurConfigEntry = (ConfigEntry<float>) pluginType.GetField(FIELD_BLURFACTOR, All)!.GetValue(betterMapsPluginInstance);
         var outlineConfigEntry = (ConfigEntry<float>) pluginType.GetField(FIELD_OUTLINEFACTOR, All)!.GetValue(betterMapsPluginInstance);
 
-        CMapDetails.MapBlurFactor = blurConfigEntry?.Value;
+        _processor.MapBlurFactor = blurConfigEntry?.Value;
         Log($"Gotten BlurFactor: {CMapDetails.MapBlurFactor}");
-        CMapDetails.MapOutlineFactor = outlineConfigEntry?.Value;
+        _processor.MapOutlineFactor = outlineConfigEntry?.Value;
         Log($"Gotten OutlineFactor: {CMapDetails.MapOutlineFactor}");
 
         var MI_CalculateTriangulation = typeof(NavMesh).GetMethod(nameof(NavMesh.CalculateTriangulation));
