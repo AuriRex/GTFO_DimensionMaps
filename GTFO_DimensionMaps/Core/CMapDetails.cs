@@ -1,20 +1,21 @@
-using System;
 using System.Collections.Generic;
-using DimensionMaps.Extensions;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace DimensionMaps.Core;
 
-public class CMapDetails
+public partial class CMapDetails
 {
+    
+    private readonly Dictionary<eDimensionIndex, MapData> _mapLayers = new();
+    
     public static bool RevealMapTexture { get; set; } = false;
     
-    public static Material NavMeshMaterial => MapDetails.Current.m_navmeshMaterial; // TODO
-    public static Material Mat_FindMapOutline => MapDetails.Current.m_findMapOutline_Material; // TODO
-    public static Material Mat_SDF => MapDetails.Current.m_SDF_Material; // TODO
-    public static Material Mat_BlurX => MapDetails.Current.m_blurX; // TODO
-    public static Material Mat_BlurY => MapDetails.Current.m_blurY; // TODO
+    public static Material NavMeshMaterial => MapDetails.Current.m_navmeshMaterial;
+    public static Material Mat_FindMapOutline => MapDetails.Current.m_findMapOutline_Material;
+    public static Material Mat_SDF => MapDetails.Current.m_SDF_Material;
+    public static Material Mat_BlurX => MapDetails.Current.m_blurX;
+    public static Material Mat_BlurY => MapDetails.Current.m_blurY;
 
     public static int MapResolution => MapDetails.Current.m_mapResolution;
     public static int MapRenderResolution => MapDetails.Current.m_mapRenderResolution;
@@ -38,12 +39,20 @@ public class CMapDetails
 
     public void SaveSnapshot()
     {
-        // TODO
+        Plugin.L.LogWarning("Saving map snapshots ...");
+        foreach (var data in _mapLayers)
+        {
+            data.Value.SnapShot.Capture();
+        }
     }
 
     public void RestoreSnapshot()
     {
-        // TODO
+        Plugin.L.LogWarning("Restoring map snapshots ...");
+        foreach (var kvp in AllMapLayers)
+        {
+            kvp.Value.SnapShot.Restore();
+        }
     }
 
     public void OnLevelCleanup()
@@ -84,73 +93,11 @@ public class CMapDetails
         MapDetails.s_isSetup = true;
     }
 
-    // TODO: fix whatever this is lol
-    private readonly Dictionary<eDimensionIndex, MapData> _mapLayers = new();
-
     public bool GetMapLayer(eDimensionIndex index, out MapData mapData)
     {
         return _mapLayers.TryGetValue(index, out mapData);
     }
-    
-    public class MapData
-    {
-        public string Name => _gameObject?.name;
-        
-        private readonly GameObject _gameObject;
-        
-        public Renderer Renderer { get; private set; }
-        
-        public RenderTexture MapTexture { get; private set; }
 
-        private GameObject CameraGameObject { get; set; }
-        public Camera Camera { get; private set; }
-        
-        public readonly Bounds bounds;
-        public readonly Vector3 boundsCenter;
-        public readonly float boundsExtendsX;
-        public readonly float boundsExtendsY;
-        
-        internal Action resolutionSetter;
-
-        internal readonly List<Matrix4x4> coneMtx = new();
-        internal readonly List<Matrix4x4> coneMtx_Other = new();
-        internal readonly List<Matrix4x4> coneMtx_Mapper = new();
-
-        public MapData(GameObject go, MeshRenderer renderer, Bounds bounds)
-        {
-            _gameObject = go;
-            Renderer = renderer;
-            this.bounds = bounds;
-
-            boundsCenter = bounds.center;
-            boundsExtendsX = bounds.extents.x;
-            boundsExtendsY = bounds.extents.y;
-        }
-
-        public void Cleanup()
-        {
-            Renderer.SafeDestroy();
-            Camera.SafeDestroy();
-            CleanupRT(MapTexture);
-            MapTexture.SafeDestroy();
-            _gameObject.SafeDestroy();
-            CameraGameObject.SafeDestroy();
-        }
-
-        internal void DisposeRenderer()
-        {
-            Renderer?.SafeDestroy();
-            Renderer = null;
-        }
-
-        internal void AssignCamera(Camera camera, RenderTexture renderTexture)
-        {
-            Camera = camera;
-            MapTexture = renderTexture;
-            CameraGameObject = camera.gameObject;
-        }
-    }
-    
     private void SetupMapLayer(eDimensionIndex index, Mesh mesh)
     {
         _currentDimension = index;

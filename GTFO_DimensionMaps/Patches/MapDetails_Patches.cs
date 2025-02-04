@@ -12,7 +12,7 @@ public static class MapDetails__StoreSnapshot__Patch
 {
     public static bool Prefix()
     {
-        NavMeshMeshCache.LoadSnapshot();
+        NavMeshMeshCache.SaveSnapshot();
         return false;
     }
 }
@@ -22,7 +22,7 @@ public static class MapDetails__RestoreSnapshot__Patch
 {
     public static bool Prefix()
     {
-        NavMeshMeshCache.SaveSnapshot();
+        NavMeshMeshCache.LoadSnapshot();
         return false;
     }
 }
