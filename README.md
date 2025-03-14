@@ -5,7 +5,8 @@ By default, all dimensions get their own map.
 
 ### Rundown Dev Info
 
-By creating files with the file name formated like `DimensionMaps_RundownID_Tier_ExpeditionIndex.json`, you're able to change which dimensions should be 'disconnected' on a per level basis.  
+By creating files with the file name formated like `DimensionMaps_RundownID_Tier_ExpeditionIndex.json`, you're able to change which dimensions should be 'disconnected' on a per-level basis.  
+Config files go in `BepInEx/config/`.  
 (See [Examples](#Examples) below!)
 
 ```json
