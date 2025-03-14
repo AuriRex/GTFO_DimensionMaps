@@ -1,8 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="GTFO_DimensionMaps.csproj.user" Condition="Exists('GTFO_DimensionMaps.csproj.user')" />
+
     <ItemGroup>
         <None Include="GTFO_DimensionMaps.csproj.user" />
     </ItemGroup>
     
+    <PropertyGroup Condition="'$(ProfilePath)' != ''">
+        <LibPath>$(ProfilePath)</LibPath>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(ProfilePath)' == ''">
+        <LibPath>$(ProjectDir)..\lib\</LibPath>
+    </PropertyGroup>
+
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <LangVersion>10.0</LangVersion>
@@ -14,7 +24,6 @@
         <Nullable>disable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-        <LibPath>$(ProjectDir)..\lib\</LibPath>
         <LatestGeneratedGameAssembliesPath>$(LibPath)\BepInEx\interop\</LatestGeneratedGameAssembliesPath>
         <LoaderRootPath>$(LibPath)\BepInEx\core\</LoaderRootPath>
         <PluginsPath>$(LibPath)\BepInEx\plugins\</PluginsPath>
