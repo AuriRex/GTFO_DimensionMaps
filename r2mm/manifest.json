@@ -1,0 +1,10 @@
+{
+  "name": "Dimension Maps",
+  "author": "AuriRex",
+  "version_number": "1.0.0",
+  "website_url": "https://github.com/AuriRex/GTFO_DimensionMaps",
+  "description": "Maps for dimensions! Configurable per level.",
+  "dependencies": [
+    "BepInEx-BepInExPack_GTFO-3.2.1"
+  ]
+}

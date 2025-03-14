@@ -18,7 +18,7 @@ public class Plugin : BasePlugin
     
     public const string GUID = "dev.aurirex.gtfo.dimensionmaps";
     public const string NAME = "Dimension Maps";
-    public const string VERSION = "0.0.1";
+    public const string VERSION = "1.0.0";
 
     internal static ManualLogSource L;
 
