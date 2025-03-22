@@ -12,6 +12,7 @@ Config files go in `BepInEx/config/`.
 ```json
 {
     "EnableDimensionSeventeenToTwenty": false,
+    "InvertDimensionsToDisconnect": false,
     "DimensionsToDisconnect": [
         0,
         2
@@ -26,6 +27,8 @@ Config files go in `BepInEx/config/`.
 * `EnableDimensionSeventeenToTwenty` (bool)
   * Enables rendering of maps in dimensions 17 to 20 (snatcher dimensions)  
   * this is usually not needed unless you're using up all other 16 dimensions for some reason and are in desperate need for even more ... lol
+* `InvertDimensionsToDisconnect` (bool)
+  * Treat the `DimensionsToDisconnect` array as `DimensionsToConnect` instead (Invert)
 * `DimensionsToDisconnect` (List&lt;uint&gt;)
   * Any dimension index entries in this list will have their maps 'disconnected' in game.
   * In the example above, dimension 0 (Reality, aka the main dimension) and dimension 2 will have their maps inaccessible.

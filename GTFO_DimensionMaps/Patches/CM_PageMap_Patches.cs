@@ -39,8 +39,15 @@ public static class CM_PageMap__UpdatePlayerData__Patch
                 return;
         }
 
-        _doDisconnectDimension = _hasConfig && _config.DimensionsToDisconnect.Contains((uint)localPlayer.DimensionIndex);
+        _doDisconnectDimension = false;
         
+        if (_hasConfig)
+        {
+            var dimensionInDisconnectSet = _config.DimensionsToDisconnect.Contains((uint)localPlayer.DimensionIndex);
+            
+            _doDisconnectDimension = _config.InvertDimensionsToDisconnect ? !dimensionInDisconnectSet : dimensionInDisconnectSet;
+        }
+
         __instance.m_mapDisconnected?.SetActive(_doDisconnectDimension);
         _mapDisconnected = __instance.m_mapDisconnected;
         __instance.m_mapDisconnected = null;
